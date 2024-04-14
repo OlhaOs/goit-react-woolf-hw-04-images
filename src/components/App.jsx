@@ -1,11 +1,12 @@
+import { Component } from 'react';
+import { getSearchImageApi } from '../api';
+import css from './App.module.css';
 import Searchbar from './Searchbar/Seacrhbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import { Bars } from 'react-loader-spinner';
-
-import { Component } from 'react';
-import { getSearchImageApi } from '../api';
-import css from './App.module.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
 export class App extends Component {
   state = {
@@ -14,6 +15,7 @@ export class App extends Component {
     page: 1,
     loading: false,
     loadMore: true,
+    error: '',
   };
 
   handleSubmit = query => {
@@ -21,22 +23,42 @@ export class App extends Component {
   };
 
   getImageListOnQuery = async () => {
-    const { data } = await getSearchImageApi(this.state.query, this.state.page);
+    try {
+      this.setState({ loading: true, error: '' });
+      const { data } = await getSearchImageApi(
+        this.state.query,
+        this.state.page
+      );
+      this.setState(prevState => ({
+        images: prevState.images
+          ? [...prevState.images, ...data.hits]
+          : data.hits,
+        loading: false,
+      }));
 
-    this.setState(prevState => ({
-      images: prevState.images
-        ? [...prevState.images, ...data.hits]
-        : data.hits,
-      loading: false,
-    }));
-
-    this.checkEndImages(data.totalHits);
+      this.checkEndImages(data.totalHits);
+    } catch (error) {
+      this.setState({ error: error.message, loading: false });
+      this.showMessage(error.message);
+    }
   };
 
   checkEndImages(total) {
-    if (total < this.state.page * 12) {
+    if (total === 0) {
+      this.showMessage(`We found nothing(`);
+    } else if (total < this.state.page * 12) {
       this.setState({ loadMore: false });
+      this.showMessage(`You've reached the end of the images.`);
     }
+  }
+  showMessage(message) {
+    iziToast.info({
+      message: message,
+      position: 'topLeft',
+      closeOnClick: true,
+      timeout: 2500,
+      pauseOnHover: true,
+    });
   }
 
   componentDidUpdate(_, prevState) {
@@ -49,8 +71,8 @@ export class App extends Component {
     }
 
     window.scrollTo({
-      top: document.documentElement.scrollHeight, 
-      behavior: 'smooth', 
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
     });
   }
 
