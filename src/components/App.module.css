@@ -1,0 +1,13 @@
+.App {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 16px;
+  padding-bottom: 24px;
+}
+.loader {
+  display: block;
+  margin: 16px auto;
+  height: 40px;
+  width: 80px;
+  color: #3d05e5;
+}
