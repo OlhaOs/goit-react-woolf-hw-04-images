@@ -7,11 +7,8 @@ class ImageGalleryItem extends Component {
     showModal: false,
   };
 
-  openModal = () => {
-    this.setState({ showModal: true });
-  };
-  closeModal = () => {
-    this.setState({ showModal: false });
+  toggleModal = () => {
+    this.setState(prevState => ({ showModal: !prevState.showModal }));
   };
 
   render() {
@@ -23,11 +20,11 @@ class ImageGalleryItem extends Component {
             src={smallUrl}
             alt={alt}
             className={css.ImageGalleryItem_image}
-            onClick={this.openModal}
+            onClick={this.toggleModal}
           />
         </li>
         {this.state.showModal && (
-          <Modal src={largeImageURL} alt={alt} onClose={this.closeModal} />
+          <Modal src={largeImageURL} alt={alt} onClose={this.toggleModal} />
         )}
       </>
     );

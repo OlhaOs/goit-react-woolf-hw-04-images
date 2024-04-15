@@ -19,27 +19,26 @@ export class App extends Component {
   };
 
   handleSubmit = query => {
-    this.setState({ images: [], query, page: 1, loading: true });
+    this.setState({ images: [], query, page: 1 });
   };
 
   getImageListOnQuery = async () => {
+    this.setState({ loading: true });
     try {
-      this.setState({ loading: true, error: '' });
+      this.setState({ error: '' });
       const { data } = await getSearchImageApi(
         this.state.query,
         this.state.page
       );
       this.setState(prevState => ({
-        images: prevState.images
-          ? [...prevState.images, ...data.hits]
-          : data.hits,
-        loading: false,
+        images: [...prevState.images, ...data.hits],
       }));
-
       this.checkEndImages(data.totalHits);
     } catch (error) {
-      this.setState({ error: error.message, loading: false });
+      this.setState({ error: error.message });
       this.showMessage(error.message);
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
@@ -67,7 +66,6 @@ export class App extends Component {
       this.state.query !== prevState.query
     ) {
       this.getImageListOnQuery();
-      this.setState({ loading: true });
     }
 
     window.scrollTo({
