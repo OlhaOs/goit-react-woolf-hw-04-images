@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { getSearchImageApi } from '../api';
 import css from './App.module.css';
 import Searchbar from './Searchbar/Seacrhbar';
@@ -7,50 +6,56 @@ import Button from './Button/Button';
 import { Bars } from 'react-loader-spinner';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
+import { useEffect, useState } from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    loading: false,
-    loadMore: true,
-    error: '',
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [loadMore, setLoadMore] = useState(true);
+  const [error, setError] = useState('');
+
+  const handleSubmit = query => {
+    setImages([]);
+    setQuery(query);
+    setPage(1);
   };
 
-  handleSubmit = query => {
-    this.setState({ images: [], query, page: 1 });
-  };
+  useEffect(() => {
+    getImageListOnQuery();
 
-  getImageListOnQuery = async () => {
-    this.setState({ loading: true });
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [query, page]);
+
+  const getImageListOnQuery = async () => {
+    if (query === '') return;
+    setLoading(true);
     try {
-      this.setState({ error: '' });
-      const { data } = await getSearchImageApi(
-        this.state.query,
-        this.state.page
-      );
-      this.setState(prevState => ({
-        images: [...prevState.images, ...data.hits],
-      }));
-      this.checkEndImages(data.totalHits);
+      setError('');
+      const { data } = await getSearchImageApi(query, page);
+      setImages(prevImages => [...prevImages, ...data.hits]);
+      checkEndImages(data.totalHits);
     } catch (error) {
-      this.setState({ error: error.message });
-      this.showMessage(error.message);
+      setError(error.message);
+      showMessage(error.message);
     } finally {
-      this.setState({ loading: false });
+      setLoading(false);
     }
   };
 
-  checkEndImages(total) {
+  const checkEndImages = total => {
     if (total === 0) {
-      this.showMessage(`We found nothing(`);
-    } else if (total < this.state.page * 12) {
-      this.setState({ loadMore: false });
-      this.showMessage(`You've reached the end of the images.`);
+      showMessage(`We found nothing(`);
+    } else if (total < page * 12) {
+      setLoadMore(false);
+      showMessage(`You've reached the end of the images.`);
     }
-  }
-  showMessage(message) {
+  };
+  const showMessage = message => {
     iziToast.info({
       message: message,
       position: 'topLeft',
@@ -58,51 +63,31 @@ export class App extends Component {
       timeout: 2500,
       pauseOnHover: true,
     });
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (
-      this.state.page !== prevState.page ||
-      this.state.query !== prevState.query
-    ) {
-      this.getImageListOnQuery();
-    }
-
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    });
-  }
-
-  handleLoadMoreClick = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
-    });
   };
 
-  render() {
-    const { images, loadMore, loading } = this.state;
+  const handleLoadMoreClick = () => {
+    setPage(page + 1);
+  };
 
-    return (
-      <>
-        <div className={css.App}>
-          <Searchbar onSubmit={this.handleSubmit} />
-          <ImageGallery images={images} />
-          {loading ? (
-            <Bars
-              height="60"
-              width="120"
-              color="#3f51b5"
-              ariaLabel="bars-loading"
-              wrapperClass={css.loader}
-              visible={true}
-            />
-          ) : (
-            images.length > 0 &&
-            loadMore && <Button onLoadMoreClick={this.handleLoadMoreClick} />
-          )}
-        </div>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <div className={css.App}>
+        <Searchbar onSubmit={handleSubmit} />
+        <ImageGallery images={images} />
+        {loading ? (
+          <Bars
+            height="60"
+            width="120"
+            color="#3f51b5"
+            ariaLabel="bars-loading"
+            wrapperClass={css.loader}
+            visible={true}
+          />
+        ) : (
+          images.length > 0 &&
+          loadMore && <Button onLoadMoreClick={handleLoadMoreClick} />
+        )}
+      </div>
+    </>
+  );
+};

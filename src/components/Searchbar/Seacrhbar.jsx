@@ -1,28 +1,28 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import css from './Searchbar.module.css';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-class Searchbar extends Component {
-  state = {
-    query: '',
-  };
-  handleSubmit = e => {
+const Searchbar = ({ onSubmit }) => {
+  const [query, setQuery] = useState('');
+
+  const handleSubmit = e => {
     e.preventDefault();
 
-    if (this.state.query.trim() === '') {
-      this.showMessage('Please, enter your query!');
+    if (query.trim() === '') {
+      showMessage('Please, enter your query!');
       return;
     }
 
-    this.props.onSubmit(this.state.query);
+    onSubmit(query);
+    setQuery('');
   };
 
-  handleChange = e => {
-    this.setState({ query: e.target.value });
+  const handleChange = e => {
+    setQuery(e.target.value);
   };
-  showMessage(message) {
+  const showMessage = message => {
     iziToast.info({
       message: message,
       position: 'topLeft',
@@ -30,27 +30,25 @@ class Searchbar extends Component {
       timeout: 2500,
       pauseOnHover: true,
     });
-  }
+  };
 
-  render() {
-    return (
-      <header className={css.Searchbar}>
-        <form className={css.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={css.SearchFormButton}>
-            <FiSearch />
-          </button>
+  return (
+    <header className={css.Searchbar}>
+      <form className={css.SearchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={css.SearchFormButton}>
+          <FiSearch />
+        </button>
 
-          <input
-            className={css.SearchFormInput}
-            type="text"
-            placeholder="Search images and photos"
-            value={this.state.query}
-            onChange={this.handleChange}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+        <input
+          className={css.SearchFormInput}
+          type="text"
+          placeholder="Search images and photos"
+          value={query}
+          onChange={handleChange}
+        />
+      </form>
+    </header>
+  );
+};
 
 export default Searchbar;
