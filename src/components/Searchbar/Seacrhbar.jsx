@@ -16,6 +16,7 @@ const Searchbar = ({ onSubmit }) => {
     }
 
     onSubmit(query);
+    setQuery('');
   };
 
   const handleChange = e => {

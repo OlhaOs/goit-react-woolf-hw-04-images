@@ -14,7 +14,6 @@ export const App = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadMore, setLoadMore] = useState(true);
-  const [error, setError] = useState('');
 
   const handleSubmit = query => {
     setImages([]);
@@ -29,18 +28,17 @@ export const App = () => {
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, page]);
 
   const getImageListOnQuery = async () => {
     if (query === '') return;
     setLoading(true);
     try {
-      setError('');
       const { data } = await getSearchImageApi(query, page);
       setImages(prevImages => [...prevImages, ...data.hits]);
       checkEndImages(data.totalHits);
     } catch (error) {
-      setError(error.message);
       showMessage(error.message);
     } finally {
       setLoading(false);
