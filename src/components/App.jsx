@@ -6,7 +6,7 @@ import Button from './Button/Button';
 import { Bars } from 'react-loader-spinner';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export const App = () => {
   const [images, setImages] = useState([]);
@@ -21,30 +21,6 @@ export const App = () => {
     setPage(1);
   };
 
-  useEffect(() => {
-    getImageListOnQuery();
-
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, page]);
-
-  const getImageListOnQuery = async () => {
-    if (query === '') return;
-    setLoading(true);
-    try {
-      const { data } = await getSearchImageApi(query, page);
-      setImages(prevImages => [...prevImages, ...data.hits]);
-      checkEndImages(data.totalHits);
-    } catch (error) {
-      showMessage(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const checkEndImages = total => {
     if (total === 0) {
       showMessage(`We found nothing(`);
@@ -53,6 +29,31 @@ export const App = () => {
       showMessage(`You've reached the end of the images.`);
     }
   };
+
+  const prevCheckEndImages = useRef(checkEndImages);
+
+  useEffect(() => {
+    const getImageListOnQuery = async () => {
+      if (query === '') return;
+      setLoading(true);
+      try {
+        const { data } = await getSearchImageApi(query, page);
+        setImages(prevImages => [...prevImages, ...data.hits]);
+        prevCheckEndImages.current(data.totalHits);
+      } catch (error) {
+        showMessage(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getImageListOnQuery();
+
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [query, page]);
+
   const showMessage = message => {
     iziToast.info({
       message: message,
